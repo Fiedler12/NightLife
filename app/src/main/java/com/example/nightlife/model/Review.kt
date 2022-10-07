@@ -1,6 +1,7 @@
 package com.example.nightlife.model
 
-class Review(rating: Int, review: String) {
+class Review(id: Int, rating: Int, review: String) {
+    val id = id
     val rating = rating
     val review = review
 }
