@@ -13,13 +13,15 @@ class HomeViewModel: ViewModel() {
     var loggedIn by mutableStateOf(false)
     var user: String? = null
 
-    var favoriteBars = mutableListOf<String>("Dorsia", "1656", "Toves Vinkælder", "Kurt ravns drankerhytte")
+    var favoriteBars = mutableListOf("Dorsia", "1656", "Toves Vinkælder", "Kurt ravns drankerhytte")
     var trendingBars = mutableListOf<String>()
 
 
     fun logIn() {
-        loggedIn = !loggedIn
-        user = "TestUser"
+        viewModelScope.launch {
+            loggedIn = !loggedIn
+            user = "TestUser"
+        }
     }
 
 }

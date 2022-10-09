@@ -8,10 +8,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
+import androidx.compose.material.SnackbarDefaults.backgroundColor
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.materialIcon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,17 +20,18 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.modifier.modifierLocalConsumer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
+import com.example.nightlife.model.NavigationItem
 import com.example.nightlife.ui.theme.NightLifeTheme
 import com.example.nightlife.viewmodel.HomeViewModel
 
 class MainActivity : ComponentActivity() {
 
     private val viewModel = HomeViewModel()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -42,7 +44,12 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Screen(viewModel: HomeViewModel) {
-    if (viewModel.loggedIn) OverviewPage(viewModel) else Login {
+    if (viewModel.loggedIn) {
+        Scaffold(
+            bottomBar = { NavBar() },
+            content = { OverviewPage(viewModel = viewModel) })
+
+    } else Login {
         viewModel.logIn()
     }
 }
@@ -77,6 +84,14 @@ fun OverviewPage(viewModel: HomeViewModel) {
         Text(text = "Trending in Copenhagen",
         modifier = Modifier.padding(5.dp),
         style = MaterialTheme.typography.h5)
+        LazyRow(modifier = Modifier
+            .height(250.dp)
+            .fillMaxWidth(), 
+        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            items(viewModel.favoriteBars) {
+                TrendyComponent(name = it)
+            }
+        }
     }
 }
 
@@ -121,10 +136,12 @@ fun FavoriteComponent(name: String) {
 
 @Composable
 fun TrendyComponent(name: String) {
+    val configuration = LocalConfiguration.current
     Box(modifier = Modifier
         .height(250.dp)
-        .fillMaxWidth()
-        .clip(RoundedCornerShape(15.dp))) {
+        .width(configuration.screenWidthDp.dp - 10.dp)
+        .clip(RoundedCornerShape(15.dp))
+        .background(Color.LightGray)) {
         Column(modifier = Modifier.fillMaxSize()) {
             Text(
                 text = name,
@@ -141,7 +158,8 @@ fun TrendyComponent(name: String) {
             )
             Text(
                 text = "Address or some shit",
-                modifier = Modifier.padding(10.dp)
+                modifier = Modifier
+                    .padding(10.dp)
                     .alpha(0.8f),
                 style = MaterialTheme.typography.body1
             )
@@ -151,6 +169,30 @@ fun TrendyComponent(name: String) {
                 style = MaterialTheme.typography.caption
             )
 
+        }
+    }
+}
+
+@Composable
+fun NavBar() {
+    val items = listOf(
+        NavigationItem.Home,
+        NavigationItem.Map,
+        NavigationItem.Settings
+    )
+    BottomNavigation(
+        Modifier.background(Color.LightGray),
+        contentColor = Color.Black
+    ) {
+        items.forEach{item ->
+            BottomNavigationItem(
+                icon = { Icon(imageVector = Icons.Filled.Home, contentDescription = item.title) },
+                label = { Text(text = item.title)},
+                selectedContentColor = Color.White,
+                unselectedContentColor = Color.White.copy(0.4f),
+                alwaysShowLabel = true,
+                selected = false,
+                onClick = { /*TODO*/ })
         }
     }
 }
@@ -170,7 +212,9 @@ fun DefaultPreview() {
 @Composable
 fun LoggedInPreview() {
     val viewModel = HomeViewModel()
-    OverviewPage(viewModel)
+    Scaffold(
+        bottomBar = { NavBar() },
+        content = { OverviewPage(viewModel = viewModel) })
 }
 
 @Preview(showBackground = true)
@@ -183,4 +227,10 @@ fun FavoritePreview() {
 @Composable
 fun TrendPreview() {
     TrendyComponent(name = "BarKowski")
+}
+
+@Preview(showBackground = true)
+@Composable
+fun NavPreview() {
+    NavBar()
 }
