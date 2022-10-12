@@ -7,7 +7,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.SnackbarDefaults.backgroundColor
 import androidx.compose.material.icons.Icons
@@ -30,7 +32,6 @@ import com.example.nightlife.ui.theme.NightLifeTheme
 import com.example.nightlife.viewmodel.HomeViewModel
 
 class MainActivity : ComponentActivity() {
-
     private val viewModel = HomeViewModel()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,7 +66,9 @@ fun Login(onButtonClick: () -> Unit) {
 
 @Composable
 fun OverviewPage(viewModel: HomeViewModel) {
-    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = "Welcome to NightLife!",
             modifier = Modifier.padding(5.dp),
             style = MaterialTheme.typography.h3)
@@ -77,8 +80,8 @@ fun OverviewPage(viewModel: HomeViewModel) {
             .fillMaxWidth()
             .padding(),
         horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(viewModel.favoriteBars) {
-                FavoriteComponent(name = it)
+            items(viewModel.favorites) {
+                FavoriteComponent(name = it.name)
             }
         }
         Text(text = "Trending in Copenhagen",
@@ -88,8 +91,19 @@ fun OverviewPage(viewModel: HomeViewModel) {
             .height(250.dp)
             .fillMaxWidth(), 
         horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(viewModel.favoriteBars) {
-                TrendyComponent(name = it)
+            items(viewModel.bars.allBars) {
+                TrendyComponent(name = it.name)
+            }
+        }
+        Text(text = "Closest to you",
+        modifier = Modifier.padding(5.dp),
+        style = MaterialTheme.typography.h5)
+        LazyRow(modifier = Modifier
+            .height(250.dp)
+            .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            items(viewModel.bars.allBars) {
+                ProximityComponent(name = it.name)
             }
         }
     }
@@ -124,6 +138,45 @@ fun FavoriteComponent(name: String) {
             }
             Text(
                 text = "Open",
+                modifier = Modifier
+                    .padding(5.dp)
+                    .alpha(0.5f),
+                style = MaterialTheme.typography.h6
+            )
+        }
+    }
+    // Should be clickable to navigate to company profile.
+}
+
+@Composable
+fun ProximityComponent(name: String) {
+    Box(modifier = Modifier
+        .height(100.dp)
+        .width(200.dp)
+        .clip(RoundedCornerShape(10.dp))
+        .background(Color.LightGray)
+        .padding()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Text(
+                    text = name,
+                    modifier = Modifier.padding(5.dp),
+                    style = MaterialTheme.typography.h4
+                )
+                Text(
+                    text = "4,3",
+                    modifier = Modifier
+                        .padding(horizontal = 5.dp, vertical = 10.dp)
+                        .alpha(0.5f),
+                    style = MaterialTheme.typography.h5
+                )
+            }
+            Text(
+                text = "69 KM Away",
                 modifier = Modifier
                     .padding(5.dp)
                     .alpha(0.5f),
@@ -197,6 +250,25 @@ fun NavBar() {
     }
 }
 
+@Composable
+fun ProfileScreen(id: Int) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(150.dp)
+                .background(Color.LightGray)) {
+            Text(text = "Picture")
+        }
+        Text(text = "Name",
+            modifier = Modifier.padding(10.dp),
+            style = MaterialTheme.typography.h3)
+        Text(text = "Some log description",
+        modifier = Modifier.padding(10.dp),
+        style = MaterialTheme.typography.body1)
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable
@@ -219,18 +291,12 @@ fun LoggedInPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun FavoritePreview() {
-    FavoriteComponent(name = "1656")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun TrendPreview() {
-    TrendyComponent(name = "BarKowski")
-}
-
-@Preview(showBackground = true)
-@Composable
 fun NavPreview() {
     NavBar()
+}
+
+@Preview(showBackground = true)
+@Composable 
+fun barPreview() {
+    ProfileScreen(id = 1)
 }
