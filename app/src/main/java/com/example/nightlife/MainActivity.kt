@@ -11,24 +11,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
-import androidx.compose.material.SnackbarDefaults.backgroundColor
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.materialIcon
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -123,6 +116,7 @@ fun OverviewPage(viewModel: HomeViewModel) {
 fun MapPage() {
     Box(modifier = Modifier.fillMaxSize()) {
         Text(text = "Map")
+        // We should use google maps on this. 
     }
 }
 @Composable
@@ -346,11 +340,9 @@ fun DefaultPreview() {
 @Composable
 fun LoggedInPreview() {
     val viewModel = HomeViewModel()
-    val navController = rememberNavController()
-    Scaffold(
-        bottomBar = { NavBar(navController) },
-        content = { OverviewPage(viewModel = viewModel) })
+    OverviewPage(viewModel = viewModel)
 }
+
 
 @Preview(showBackground = true)
 @Composable
