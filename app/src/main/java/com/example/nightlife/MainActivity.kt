@@ -27,6 +27,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavHost
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.example.nightlife.model.NavigationItem
 import com.example.nightlife.ui.theme.NightLifeTheme
 import com.example.nightlife.viewmodel.HomeViewModel
@@ -45,11 +52,14 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Screen(viewModel: HomeViewModel) {
+    val navController = rememberNavController()
     if (viewModel.loggedIn) {
-        Scaffold(
-            bottomBar = { NavBar() },
-            content = { OverviewPage(viewModel = viewModel) })
 
+        Scaffold(
+            bottomBar = { NavBar(navController = navController) }
+        ) {
+            NavigationGraph(navController = navController, viewModel)
+        }
     } else Login {
         viewModel.logIn()
     }
@@ -108,6 +118,46 @@ fun OverviewPage(viewModel: HomeViewModel) {
         }
     }
 }
+
+@Composable
+fun MapPage() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Text(text = "Map")
+    }
+}
+@Composable
+fun SettingsPage() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Text(text = "Settings")
+    }
+}
+
+@Composable
+fun SearchPage() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Text(text = "Search")
+    }
+}
+
+@Composable
+fun NavigationGraph(navController: NavHostController, viewModel: HomeViewModel) {
+    NavHost(navController = navController, startDestination = NavigationItem.Home.route) {
+        composable(NavigationItem.Home.route) {
+         OverviewPage(viewModel = viewModel)
+        }
+        composable(NavigationItem.Map.route) {
+            MapPage()
+        }
+        composable(NavigationItem.Search.route) {
+            SearchPage()
+        }
+        composable(NavigationItem.Settings.route) {
+            SettingsPage()
+        }
+
+    }
+}
+
 
 @Composable
 fun FavoriteComponent(name: String) {
@@ -227,25 +277,37 @@ fun TrendyComponent(name: String) {
 }
 
 @Composable
-fun NavBar() {
+fun NavBar(navController: NavController) {
     val items = listOf(
         NavigationItem.Home,
         NavigationItem.Map,
+        NavigationItem.Search,
         NavigationItem.Settings
     )
     BottomNavigation(
         Modifier.background(Color.LightGray),
         contentColor = Color.Black
     ) {
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route
         items.forEach{item ->
             BottomNavigationItem(
-                icon = { Icon(imageVector = Icons.Filled.Home, contentDescription = item.title) },
+                icon = { Icon(imageVector = item.imageVector, contentDescription = item.title) },
                 label = { Text(text = item.title)},
                 selectedContentColor = Color.White,
                 unselectedContentColor = Color.White.copy(0.4f),
                 alwaysShowLabel = true,
-                selected = false,
-                onClick = { /*TODO*/ })
+                selected = currentRoute == item.route,
+                onClick = {
+                    navController.navigate(item.route) {
+                        navController.graph.startDestinationRoute?.let {route ->
+                            popUpTo(route) {
+                                saveState = true
+                            }
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                } })
         }
     }
 }
@@ -284,15 +346,17 @@ fun DefaultPreview() {
 @Composable
 fun LoggedInPreview() {
     val viewModel = HomeViewModel()
+    val navController = rememberNavController()
     Scaffold(
-        bottomBar = { NavBar() },
+        bottomBar = { NavBar(navController) },
         content = { OverviewPage(viewModel = viewModel) })
 }
 
 @Preview(showBackground = true)
 @Composable
 fun NavPreview() {
-    NavBar()
+    val navController = rememberNavController()
+    NavBar(navController)
 }
 
 @Preview(showBackground = true)
