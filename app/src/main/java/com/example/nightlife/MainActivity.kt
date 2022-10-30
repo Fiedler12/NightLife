@@ -11,14 +11,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -121,15 +121,41 @@ fun MapPage() {
 }
 @Composable
 fun SettingsPage() {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Text(text = "Settings")
+    Column(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxWidth().height(150.dp)) {
+            Text(text = "Settings", modifier = Modifier.padding(5.dp), style = MaterialTheme.typography.h3)
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.LightGray)
+        ) {
+            Text(
+                text = "Profile",
+                modifier = Modifier.padding(5.dp),
+                style = MaterialTheme.typography.h6
+            )
+
+        }
     }
 }
 
 @Composable
+fun generateSettingsText(text: String) {
+
+}
+
+@Composable
 fun SearchPage() {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Text(text = "Search")
+    var text by remember { mutableStateOf(TextFieldValue("")) }
+    Column(modifier = Modifier.fillMaxSize()) {
+        TextField(modifier = Modifier.fillMaxWidth(),
+            value = text,
+            onValueChange = {newText ->
+                text = newText
+        },
+        placeholder = {Text(text = "Search")})
+        Text(text = "Maybe latest searches here?")
     }
 }
 
@@ -289,7 +315,7 @@ fun NavBar(navController: NavController) {
                 icon = { Icon(imageVector = item.imageVector, contentDescription = item.title) },
                 label = { Text(text = item.title)},
                 selectedContentColor = Color.White,
-                unselectedContentColor = Color.White.copy(0.4f),
+                unselectedContentColor = Color.Black,
                 alwaysShowLabel = true,
                 selected = currentRoute == item.route,
                 onClick = {
@@ -330,9 +356,7 @@ fun ProfileScreen(id: Int) {
 @Composable
 fun DefaultPreview() {
     NightLifeTheme {
-        Login {
-
-        }
+        SettingsPage()
     }
 }
 
