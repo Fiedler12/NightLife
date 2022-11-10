@@ -3,13 +3,11 @@ package com.example.nightlife
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,8 +19,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
+import androidx.navigation.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -68,7 +65,7 @@ fun Login(onButtonClick: () -> Unit) {
 }
 
 @Composable
-fun OverviewPage(viewModel: HomeViewModel) {
+fun OverviewPage(viewModel: HomeViewModel, navController: NavController) {
     Column(modifier = Modifier
         .fillMaxSize()
         .verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -84,7 +81,12 @@ fun OverviewPage(viewModel: HomeViewModel) {
             .padding(),
         horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             items(viewModel.favorites) {
-                FavoriteComponent(name = it.name)
+                FavoriteComponent(it.id, name = it.name, it.rating) {
+                    navController.navigate("bar/" + it.id)
+                    NavOptions.Builder()
+                        .setPopUpTo("home", inclusive = true)
+                        .build()
+                }
             }
         }
         Text(text = "Trending in Copenhagen",
@@ -95,7 +97,7 @@ fun OverviewPage(viewModel: HomeViewModel) {
             .fillMaxWidth(), 
         horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             items(viewModel.bars.allBars) {
-                TrendyComponent(name = it.name)
+                TrendyComponent(name = it.name, it.rating)
             }
         }
         Text(text = "Closest to you",
@@ -106,7 +108,7 @@ fun OverviewPage(viewModel: HomeViewModel) {
             .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             items(viewModel.bars.allBars) {
-                ProximityComponent(name = it.name)
+                ProximityComponent(name = it.name, it.rating)
             }
         }
     }
@@ -119,10 +121,13 @@ fun MapPage() {
         // We should use google maps on this. 
     }
 }
+
 @Composable
 fun SettingsPage() {
     Column(modifier = Modifier.fillMaxSize()) {
-        Box(modifier = Modifier.fillMaxWidth().height(150.dp)) {
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .height(150.dp)) {
             Text(text = "Settings", modifier = Modifier.padding(5.dp), style = MaterialTheme.typography.h3)
         }
         Box(
@@ -130,19 +135,26 @@ fun SettingsPage() {
                 .fillMaxWidth()
                 .background(Color.LightGray)
         ) {
-            Text(
-                text = "Profile",
-                modifier = Modifier.padding(5.dp),
-                style = MaterialTheme.typography.h6
-            )
-
         }
+            generateSettingsText(text = "Profile")
+            generateSettingsText(text = "Preferences")
     }
 }
 
 @Composable
 fun generateSettingsText(text: String) {
-
+    Box(modifier = Modifier
+        .height(50.dp)
+        .fillMaxWidth()
+        .border(4.dp, Color.DarkGray)) {
+        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.Start) {
+            Text(
+                text = text,
+                modifier = Modifier.padding(2.dp),
+                style = MaterialTheme.typography.h5
+            )
+        }
+    }
 }
 
 @Composable
@@ -163,7 +175,7 @@ fun SearchPage() {
 fun NavigationGraph(navController: NavHostController, viewModel: HomeViewModel) {
     NavHost(navController = navController, startDestination = NavigationItem.Home.route) {
         composable(NavigationItem.Home.route) {
-         OverviewPage(viewModel = viewModel)
+         OverviewPage(viewModel = viewModel, navController)
         }
         composable(NavigationItem.Map.route) {
             MapPage()
@@ -174,19 +186,23 @@ fun NavigationGraph(navController: NavHostController, viewModel: HomeViewModel) 
         composable(NavigationItem.Settings.route) {
             SettingsPage()
         }
+        composable(NavigationItem.Bar.route, arguments = listOf(navArgument("id") {type = NavType.IntType})) {
+            ProfileScreen(id = it.arguments?.getInt("id"), navController)
+        }
 
     }
 }
 
 
 @Composable
-fun FavoriteComponent(name: String) {
+fun FavoriteComponent(id: Int, name: String, rating: String, onButtonClick: () -> Unit) {
     Box(modifier = Modifier
         .height(100.dp)
         .width(200.dp)
         .clip(RoundedCornerShape(10.dp))
         .background(Color.LightGray)
-        .padding()) {
+        .padding()
+        .clickable { onButtonClick() }){
         Column(modifier = Modifier.fillMaxSize()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -199,7 +215,7 @@ fun FavoriteComponent(name: String) {
                     style = MaterialTheme.typography.h4
                 )
                 Text(
-                    text = "4,3",
+                    text = rating,
                     modifier = Modifier
                         .padding(horizontal = 5.dp, vertical = 10.dp)
                         .alpha(0.5f),
@@ -219,7 +235,7 @@ fun FavoriteComponent(name: String) {
 }
 
 @Composable
-fun ProximityComponent(name: String) {
+fun ProximityComponent(name: String, rating: String) {
     Box(modifier = Modifier
         .height(100.dp)
         .width(200.dp)
@@ -238,7 +254,7 @@ fun ProximityComponent(name: String) {
                     style = MaterialTheme.typography.h4
                 )
                 Text(
-                    text = "4,3",
+                    text = rating,
                     modifier = Modifier
                         .padding(horizontal = 5.dp, vertical = 10.dp)
                         .alpha(0.5f),
@@ -258,12 +274,12 @@ fun ProximityComponent(name: String) {
 }
 
 @Composable
-fun TrendyComponent(name: String) {
+fun TrendyComponent(name: String, rating: String) {
     val configuration = LocalConfiguration.current
     Box(modifier = Modifier
         .height(250.dp)
         .width(configuration.screenWidthDp.dp - 10.dp)
-        .clip(RoundedCornerShape(15.dp))
+        .clip(RoundedCornerShape(10.dp))
         .background(Color.LightGray)) {
         Column(modifier = Modifier.fillMaxSize()) {
             Text(
@@ -273,7 +289,7 @@ fun TrendyComponent(name: String) {
                 style = MaterialTheme.typography.h3
             )
             Text(
-                text = "Rating: 4,1",
+                text = "Rating: " + rating.toString(),
                 modifier = Modifier
                     .padding(5.dp)
                     .alpha(0.8f),
@@ -312,7 +328,7 @@ fun NavBar(navController: NavController) {
         val currentRoute = navBackStackEntry?.destination?.route
         items.forEach{item ->
             BottomNavigationItem(
-                icon = { Icon(imageVector = item.imageVector, contentDescription = item.title) },
+                icon = { item.imageVector?.let { Icon(imageVector = it, contentDescription = item.title) } },
                 label = { Text(text = item.title)},
                 selectedContentColor = Color.White,
                 unselectedContentColor = Color.Black,
@@ -333,14 +349,17 @@ fun NavBar(navController: NavController) {
 }
 
 @Composable
-fun ProfileScreen(id: Int) {
+fun ProfileScreen(id: Int?, navController: NavController) {
     Column(modifier = Modifier.fillMaxSize()) {
+        Button(onClick = { navController.popBackStack() }) {
+            Text("<---")
+        }
         Box(
             Modifier
                 .fillMaxWidth()
                 .height(150.dp)
                 .background(Color.LightGray)) {
-            Text(text = "Picture")
+            Text(text = "$id")
         }
         Text(text = "Name",
             modifier = Modifier.padding(10.dp),
@@ -363,8 +382,6 @@ fun DefaultPreview() {
 @Preview(showBackground = true)
 @Composable
 fun LoggedInPreview() {
-    val viewModel = HomeViewModel()
-    OverviewPage(viewModel = viewModel)
 }
 
 
@@ -378,5 +395,10 @@ fun NavPreview() {
 @Preview(showBackground = true)
 @Composable 
 fun barPreview() {
-    ProfileScreen(id = 1)
+}
+
+@Preview(showBackground = true)
+@Composable
+fun settingsPreview() {
+    generateSettingsText(text = "Profile")
 }

@@ -1,5 +1,6 @@
 package com.example.nightlife.model
 
+import java.text.DecimalFormat
 import kotlin.random.Random
 
 
@@ -10,8 +11,9 @@ class Bars {
 
     init {
         var t = 0
+        val df = DecimalFormat("#.##")
         for (i in receivedNames) {
-            val newBar = Bar(t, i, Random.nextDouble(0.0,5.0))
+            val newBar = Bar(t, i, df.format(Random.nextDouble(0.0,5.0)))
             allBars.add(newBar)
             t++
         }
