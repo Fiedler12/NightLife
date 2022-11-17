@@ -1,6 +1,8 @@
 package com.example.nightlife
 
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
@@ -25,11 +27,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.nightlife.model.NavigationItem
+import com.example.nightlife.service.BarService
+import com.example.nightlife.service.RetrofitHelper
 import com.example.nightlife.ui.theme.NightLifeTheme
 import com.example.nightlife.viewmodel.HomeViewModel
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val viewModel = HomeViewModel()
+    @SuppressLint("CoroutineCreationDuringComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

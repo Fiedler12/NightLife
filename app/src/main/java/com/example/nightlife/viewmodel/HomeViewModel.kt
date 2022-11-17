@@ -8,6 +8,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.nightlife.model.Bar
 import com.example.nightlife.model.Bars
 import com.example.nightlife.model.User
+import com.example.nightlife.service.BarService
+import com.example.nightlife.service.RetrofitHelper
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -29,7 +32,10 @@ class HomeViewModel: ViewModel() {
                     }
                 }
             }
+            val apiTest = RetrofitHelper.getInstance().create(BarService::class.java)
+                val result = apiTest.getTest()
+                if (result != null)
+                    println(result.body())
+            }
         }
     }
-
-}

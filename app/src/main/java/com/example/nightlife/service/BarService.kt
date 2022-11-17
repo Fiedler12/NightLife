@@ -1,14 +1,23 @@
 package com.example.nightlife.service
 
 import com.example.nightlife.model.Bar
+import retrofit2.Response
+import retrofit2.http.GET
+import java.util.*
 
-// Gonna be used to fetch a list of bars.
-class BarService {
+
+interface BarService {
+    @GET("/api/bar/:id")
     suspend fun getSpecificBar(id: Int) {
 
     }
 
-    suspend fun getFavorites(id: List<Int>) {
-        //Return a list of favorites based on the list given
+    @GET("/api/bar")
+    suspend fun getBars(id: List<Int>) {
+
+
     }
+
+    @GET("/api/test")
+    suspend fun getTest(): Response<Object>
 }
