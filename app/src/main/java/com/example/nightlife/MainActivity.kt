@@ -2,7 +2,6 @@ package com.example.nightlife
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
@@ -26,16 +25,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.nightlife.model.Bar
 import com.example.nightlife.model.NavigationItem
-import com.example.nightlife.service.BarService
-import com.example.nightlife.service.RetrofitHelper
 import com.example.nightlife.ui.theme.NightLifeTheme
 import com.example.nightlife.viewmodel.HomeViewModel
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import androidx.compose.foundation.lazy.items // or auto-fix imports
+import androidx.compose.foundation.lazy.itemsIndexed
+
 
 class MainActivity : ComponentActivity() {
-    private val viewModel = HomeViewModel()
+    var viewModel = HomeViewModel()
+
     @SuppressLint("CoroutineCreationDuringComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +51,6 @@ class MainActivity : ComponentActivity() {
 fun Screen(viewModel: HomeViewModel) {
     val navController = rememberNavController()
     if (viewModel.loggedIn) {
-
         Scaffold(
             bottomBar = { NavBar(navController = navController) }
         ) {
@@ -73,6 +72,7 @@ fun Login(onButtonClick: () -> Unit) {
 
 @Composable
 fun OverviewPage(viewModel: HomeViewModel, navController: NavController) {
+    val bars by viewModel.barState.collectAsState()
     Column(modifier = Modifier
         .fillMaxSize()
         .verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -87,12 +87,12 @@ fun OverviewPage(viewModel: HomeViewModel, navController: NavController) {
             .fillMaxWidth()
             .padding(),
         horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(viewModel.favorites) {
-                FavoriteComponent(it.id, name = it.name, it.rating) {
-                    navController.navigate("bar/" + it.id)
-                    NavOptions.Builder()
-                        .setPopUpTo("home", inclusive = true)
-                        .build()
+            items(bars) {
+                FavoriteComponent(it) {
+                        navController.navigate("bar/" + it.id)
+                        NavOptions.Builder()
+                            .setPopUpTo("home", inclusive = true)
+                            .build()
                 }
             }
         }
@@ -103,8 +103,8 @@ fun OverviewPage(viewModel: HomeViewModel, navController: NavController) {
             .height(250.dp)
             .fillMaxWidth(), 
         horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(viewModel.bars.allBars) {
-                TrendyComponent(name = it.name, it.rating)
+            items(bars) {
+                TrendyComponent(it)
             }
         }
         Text(text = "Closest to you",
@@ -114,12 +114,13 @@ fun OverviewPage(viewModel: HomeViewModel, navController: NavController) {
             .height(250.dp)
             .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(viewModel.bars.allBars) {
-                ProximityComponent(name = it.name, it.rating)
+            items(bars) {
+                ProximityComponent(it)
             }
         }
     }
 }
+
 
 @Composable
 fun MapPage() {
@@ -202,7 +203,7 @@ fun NavigationGraph(navController: NavHostController, viewModel: HomeViewModel) 
 
 
 @Composable
-fun FavoriteComponent(id: Int, name: String, rating: String, onButtonClick: () -> Unit) {
+fun FavoriteComponent(bar: Bar, onButtonClick: () -> Unit) {
     Box(modifier = Modifier
         .height(100.dp)
         .width(200.dp)
@@ -217,12 +218,12 @@ fun FavoriteComponent(id: Int, name: String, rating: String, onButtonClick: () -
                 verticalAlignment = Alignment.Bottom
             ) {
                 Text(
-                    text = name,
+                    text = bar.name,
                     modifier = Modifier.padding(5.dp),
                     style = MaterialTheme.typography.h4
                 )
                 Text(
-                    text = rating,
+                    text = bar.rating.toString(),
                     modifier = Modifier
                         .padding(horizontal = 5.dp, vertical = 10.dp)
                         .alpha(0.5f),
@@ -242,7 +243,7 @@ fun FavoriteComponent(id: Int, name: String, rating: String, onButtonClick: () -
 }
 
 @Composable
-fun ProximityComponent(name: String, rating: String) {
+fun ProximityComponent(bar: Bar) {
     Box(modifier = Modifier
         .height(100.dp)
         .width(200.dp)
@@ -256,12 +257,12 @@ fun ProximityComponent(name: String, rating: String) {
                 verticalAlignment = Alignment.Bottom
             ) {
                 Text(
-                    text = name,
+                    text = bar.name,
                     modifier = Modifier.padding(5.dp),
                     style = MaterialTheme.typography.h4
                 )
                 Text(
-                    text = rating,
+                    text = bar.rating.toString(),
                     modifier = Modifier
                         .padding(horizontal = 5.dp, vertical = 10.dp)
                         .alpha(0.5f),
@@ -281,7 +282,7 @@ fun ProximityComponent(name: String, rating: String) {
 }
 
 @Composable
-fun TrendyComponent(name: String, rating: String) {
+fun TrendyComponent(bar: Bar) {
     val configuration = LocalConfiguration.current
     Box(modifier = Modifier
         .height(250.dp)
@@ -290,13 +291,13 @@ fun TrendyComponent(name: String, rating: String) {
         .background(Color.LightGray)) {
         Column(modifier = Modifier.fillMaxSize()) {
             Text(
-                text = name,
+                text = bar.name,
                 modifier = Modifier
                     .padding(10.dp),
                 style = MaterialTheme.typography.h3
             )
             Text(
-                text = "Rating: " + rating.toString(),
+                text = "Rating: " + bar.rating.toString(),
                 modifier = Modifier
                     .padding(5.dp)
                     .alpha(0.8f),

@@ -1,7 +1,21 @@
 package com.example.nightlife.model
 
-class Review(id: Int, rating: Int, review: String) {
-    val id = id
-    val rating = rating
-    val review = review
-}
+import com.google.gson.annotations.SerializedName
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
+data class Review(
+
+    @Json(name = "id")
+    val id: Int,
+
+    @Json(name = "barId")
+    val barId: Int,
+
+    @Json(name = "review")
+    val review: String,
+
+    @Json(name = "rating")
+    val rating: Double
+    )
